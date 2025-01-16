@@ -1,3 +1,7 @@
+clc
+clear all
+close all
+
 % Generate a 1x5 array with random integers between 0 and 6
 array = round(6 * rand(1, 5));
 array 
