@@ -1,3 +1,7 @@
+clc
+clear all
+close all
+
 img = imread('Screenshot (184).png');
 img = rgb2gray(img);
 
