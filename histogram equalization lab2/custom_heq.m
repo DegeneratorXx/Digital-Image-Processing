@@ -1,38 +1,54 @@
-img = imread('Screenshot (184).png');
-img = rgb2gray(img); % Convert to grayscale if the image is in color
+clc
+clear all
+close all
 
-subplot(1,2,1);
-imshow(img);
-title('Original Image');
+% Read and preprocess the input image
+inputImage = imread('lena.png'); 
+inputImage = rgb2gray(inputImage); 
 
-% Step 1: Compute the histogram of the image
-[rows, cols] = size(img);
-histogram = zeros(1, 256); % Array to store frequency of each intensity value (0-255)
 
-% Calculate the histogram
-for r = 1:rows
-    for c = 1:cols
-        intensity = img(r,c);
-        histogram(intensity + 1) = histogram(intensity + 1) + 1; % Increment count for the intensity
+% Get image dimensions
+[rows, cols] = size(inputImage);
+
+% Calculate original histogram and PDF
+histogramOriginal = zeros(256, 1); 
+for i = 1:rows
+    for j = 1:cols
+        intensity = inputImage(i, j);
+        histogramOriginal(intensity + 1) = histogramOriginal(intensity + 1) + 1;
     end
 end
+pdfOriginal = histogramOriginal / (rows * cols);
 
-% Step 2: Calculate the cumulative distribution function (CDF)
-cdf = cumsum(histogram) / (rows * cols); % Normalize CDF
+% Compute CDF and intensity mapping
+cdfOriginal = cumsum(pdfOriginal);
+equalizedValues = round(cdfOriginal * 255);
 
-% Step 3: Map the CDF to new intensity values (0-255)
-new_values = round(cdf * 255);
-
-% Step 4: Create the equalized image
-equalized_img = zeros(rows, cols);
-
-for r = 1:rows
-    for c = 1:cols
-        intensity = img(r,c);
-        equalized_img(r,c) = new_values(intensity + 1); % Map the original intensity to the new intensity
+% Create equalized image
+equalizedImage = zeros(size(inputImage));
+for i = 1:rows
+    for j = 1:cols
+        equalizedImage(i, j) = equalizedValues(inputImage(i, j) + 1);
     end
 end
+equalizedImage = uint8(equalizedImage);
 
-subplot(1,2,2);
-imshow(uint8(equalized_img)); % Convert to uint8 for display
-title('Equalized Image');
+% Calculate histogram and PDF for equalized image
+histogramEqualized = zeros(256, 1); 
+for i = 1:rows
+    for j = 1:cols
+        intensity = equalizedImage(i, j);
+        histogramEqualized(intensity + 1) = histogramEqualized(intensity + 1) + 1;
+    end
+end
+pdfEqualized = histogramEqualized / (rows * cols);
+cdfEqualized = cumsum(pdfEqualized);
+
+% Display results
+figure;
+subplot(2, 2, 1); imshow(inputImage); title('Original Image');
+subplot(2, 2, 2); imhist(inputImage); hold on;
+plot(cdfOriginal * max(histogramOriginal), 'r', 'LineWidth', 2); legend('Histogram', 'CDF'); title('Histogram & CDF (Original)');
+subplot(2, 2, 3); imshow(equalizedImage); title('Equalized Image');
+subplot(2, 2, 4); imhist(equalizedImage); hold on;
+plot(cdfEqualized * max(histogramEqualized), 'r', 'LineWidth', 2); legend('Histogram', 'CDF'); title('Histogram & CDF (Equalized)');
